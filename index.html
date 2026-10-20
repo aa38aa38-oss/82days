@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>82天生活化減重實戰檢核系統 (完整進階版)</title>
+  <title>82天生活化減重實戰檢核系統 (含晨起量體重檢核)</title>
   <style>
     :root {
       --primary: #1e3a8a;
@@ -108,7 +108,7 @@
 <body>
 
   <header>
-    <h1>82天生活化減重實戰檢核系統 (進階三態與個別備註版)</h1>
+    <h1>82天生活化減重實戰檢核系統 (含晨起量體重檢核)</h1>
     <p>2026.10.20 - 2027.01.10 ｜ 目標：100.8 kg ➔ 95.0 kg 以下 ｜ 支援 ✔做到、✖沒做到 與各項獨立備註</p>
     <div class="stats-bar">
       <div class="stat-box"><div class="val" id="daysLeft">82</div><div class="lbl">剩餘天數</div></div>
@@ -120,7 +120,7 @@
   </header>
 
   <div class="main-layout">
-    <!-- 左側日期軸 -->
+    <!-- 左側日誌軸 -->
     <div class="calendar-sidebar">
       <h2>執行日誌軸 <span style="font-size: 0.78rem; font-weight: normal; color: var(--text-muted);" id="dateRangeTxt">Day 1 / 82</span></h2>
       <div class="day-list" id="dayListContainer"></div>
@@ -165,7 +165,7 @@
         </div>
       </div>
 
-      <!-- 檢核清單 (包含 ✔, ✖, 標題說明, 右側備註欄) -->
+      <!-- 檢核清單 (已加入清晨量體重檢核) -->
       <div id="tasksContainer"></div>
 
       <!-- 飲食紀錄與反思 -->
@@ -186,7 +186,7 @@
 
       <!-- AI 輸出區塊 -->
       <div class="ai-output-modal" id="aiOutputModal">
-        <h3>已產生包含 ✔/✖ 與項目個別備註的 AI 診斷報告（點擊即可全選複製）：</h3>
+        <h3>已產生包含晨起量體重與 ✔/✖ 備註的 AI 診斷報告（點擊即可全選複製）：</h3>
         <textarea id="aiSummaryText" readonly onclick="this.select();"></textarea>
         <p style="font-size: 0.78rem; color: #047857; margin-top: 4px;">複製上方文字直接貼回我們在此對話視窗，我會精準分析你未達成項目的關鍵阻力！</p>
       </div>
@@ -200,8 +200,9 @@
     const TOTAL_DAYS = 82;
     let selectedDayIndex = 0;
 
-    // 15 項全生理與正念微習慣
+    // 16 項全生理與正念微習慣 (加入晨起量體重)
     const TASK_TEMPLATES = [
+      { id: "m_weigh", section: "清晨：甦醒與定錨", title: "清晨空腹量體重與記錄", desc: "如廁後、未進食前測量，客觀觀察趨勢，不為單日浮動焦慮" },
       { id: "m_water", section: "清晨：甦醒與定錨", title: "晨起小口慢飲溫水 300-500ml", desc: "啟動代謝引擎，改善輕微脫水，不猛灌牛飲" },
       { id: "m_mindful", section: "清晨：甦醒與定錨", title: "靜坐調息或溫和伸展 5-10 分鐘", desc: "接觸晨光，安定心神，建立全日正向專注基調" },
       { id: "m_protein", section: "清晨：甦醒與定錨", title: "早餐以高蛋白質為核心", desc: "蛋、無糖豆漿或起司蛋餅，穩定全日血糖與多巴胺" },
@@ -296,7 +297,14 @@
 
       document.getElementById("todaySheetCalories").innerText = data.calories ? `${data.calories} kcal` : "--";
 
-      document.getElementById("inputWeight").onchange = (e) => saveDayMeta(index, 'weight', e.target.value);
+      document.getElementById("inputWeight").onchange = (e) => {
+        saveDayMeta(index, 'weight', e.target.value);
+        // 若輸入體重數值且未標記量體重，自動設為 ok
+        const d = loadDayData(index);
+        if (e.target.value && (!d.statusMap || d.statusMap['m_weigh'] !== 'ok')) {
+          setTaskStatus(index, 'm_weigh', 'ok');
+        }
+      };
       document.getElementById("inputCalories").onchange = (e) => saveDayMeta(index, 'calories', e.target.value);
       document.getElementById("inputSteps").onchange = (e) => saveDayMeta(index, 'steps', e.target.value);
       document.getElementById("inputProtein").onchange = (e) => saveDayMeta(index, 'protein', e.target.value);
@@ -315,7 +323,7 @@
           container.appendChild(sectionEl);
         }
 
-        const currentStatus = (data.statusMap && data.statusMap[task.id]) || "none"; // 'ok', 'fail', 'none'
+        const currentStatus = (data.statusMap && data.statusMap[task.id]) || "none";
         const currentNote = (data.notesMap && data.notesMap[task.id]) || "";
 
         const row = document.createElement("div");
@@ -330,7 +338,7 @@
             <div class="task-desc">${task.desc}</div>
           </div>
           <div>
-            <input type="text" class="task-note-input" placeholder="針對此項填寫備註或原因..." value="${escapeHtml(currentNote)}" oninput="setTaskNote(${index}, '${task.id}', this.value)">
+            <input type="text" class="task-note-input" placeholder="填寫此項備註或未做到原因..." value="${escapeHtml(currentNote)}" oninput="setTaskNote(${index}, '${task.id}', this.value)">
           </div>
         `;
         container.appendChild(row);
@@ -343,7 +351,6 @@
       const data = loadDayData(dayIdx) || { statusMap: {}, notesMap: {} };
       if (!data.statusMap) data.statusMap = {};
 
-      // 若點選已啟動的狀態，則切換回未確認 (none)
       if (data.statusMap[taskId] === newStatus) {
         data.statusMap[taskId] = "none";
       } else {
@@ -411,7 +418,7 @@
       return (text || '').replace(/"/g, '&quot;');
     }
 
-    // 試算表同步
+    // 試算表連動
     async function syncFromGoogleSheets() {
       const statusEl = document.getElementById("syncStatusText");
       statusEl.innerText = "連線中... 正在抓取「健康26」工作表資料";
@@ -554,7 +561,7 @@
       }
     }
 
-    // ＝＝＝＝ AI 診斷報告生成（含 ✔/✖ 與各項獨立備註）＝＝＝＝
+    // AI 診斷報告生成
     function generateAiSummary(mode) {
       const outputModal = document.getElementById("aiOutputModal");
       const textarea = document.getElementById("aiSummaryText");
@@ -598,7 +605,7 @@ ${failList.map(item => "  " + item).join("\n") || "  (無)"}
 * 【⏳ 尚未進行或未確認】(${pendingList.length} 項)：
 ${pendingList.map(item => "  " + item).join("\n") || "  (無)"}
 
-請教練依據我今天「✖ 確定沒做到」的項目與其後方備註的具體原因，分析我背後的生理血糖震盪、多巴胺補償或意志力阻力，並為我量身制定明天最容易執行的 1~2 個物理阻斷對策！`;
+請教練依據我今天「✖ 確定沒做到」的項目與其後方備註的具體原因（特別是晨起量體重與飲食調控），分析我背後的生理阻力，並為我量身制定明日微調對策！`;
       } 
       else if (mode === 'weekly') {
         let summaryText = `【82天減重教練健檢請求 - 7日趨勢複盤】\n截至第 ${selectedDayIndex + 1} 天的近 7 日數據與破防項目：\n\n`;
@@ -626,7 +633,6 @@ ${pendingList.map(item => "  " + item).join("\n") || "  (無)"}
         textarea.value = summaryText;
       }
       else if (mode === 'all') {
-        // 匯出從 Day 1 到目前選取日的所有紀錄
         let summaryText = `【82天減重教練健檢請求 - Day 1 至 Day ${selectedDayIndex + 1} 全程總覽複盤】\n統計起點：2026/10/20 ➔ 截至：第 ${selectedDayIndex + 1} 天\n\n`;
         
         let totalLoggedDays = 0;
