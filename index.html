@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>82天生活化減重實戰檢核系統 (手機雙向修復版)</title>
+  <title>82天生活化減重實戰檢核系統 (底部快捷上傳版)</title>
   <style>
     :root {
       --primary: #1e3a8a;
       --primary-light: #2563eb;
       --accent-ok: #10b981;
       --accent-fail: #ef4444;
-      --warning: #f59e0b;
+      --warning: #d97706;
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --text: #1e293b;
@@ -163,6 +163,24 @@
     }
     .task-note-input:focus { outline: none; border-color: var(--primary-light); }
 
+    /* 底部打勾完成專屬快捷列 */
+    .checklist-bottom-sync {
+      display: flex;
+      gap: 10px;
+      margin: 16px 0 10px 0;
+      padding: 12px;
+      background: #eff6ff;
+      border: 1px dashed #bfdbfe;
+      border-radius: 10px;
+      justify-content: center;
+    }
+    .checklist-bottom-sync .btn {
+      flex: 1;
+      padding: 12px 10px;
+      font-size: 0.95rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+    }
+
     .notes-section { margin-top: 14px; }
     .notes-section textarea { width: 100%; height: 75px; padding: 8px; border-radius: 6px; border: 1px solid var(--border); resize: vertical; font-size: 0.82rem; }
     
@@ -173,7 +191,7 @@
     .btn-primary { background: var(--primary-light); color: white; }
     .btn-all { background: #4f46e5; color: white; }
     .btn-success { background: #059669; color: white; }
-    .btn-warning { background: #d97706; color: white; }
+    .btn-warning { background: var(--warning); color: white; }
     .btn-outline { background: white; border: 1px solid var(--border); color: var(--text); }
 
     .ai-output-modal { margin-top: 14px; padding: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; display: none; }
@@ -185,7 +203,7 @@
 
   <header>
     <h1>82天生活化減重實戰檢核系統</h1>
-    <p>2026.10.20 - 2027.01.10 ｜ 100.8 kg ➔ 95.0 kg 以下 ｜ 手機電腦雙向同步版</p>
+    <p>2026.10.20 - 2027.01.10 ｜ 100.8 kg ➔ 95.0 kg 以下 ｜ 雲端雙向同步</p>
     <div class="stats-bar">
       <div class="stat-box"><div class="val" id="daysLeft">82</div><div class="lbl">剩餘天數</div></div>
       <div class="stat-box"><div class="val" id="todayDoneCount">0✔/0✖</div><div class="lbl">今日狀態</div></div>
@@ -195,6 +213,7 @@
     </div>
   </header>
 
+  <!-- 手機頂部吸頂換日列 -->
   <div class="mobile-date-bar">
     <button type="button" class="nav-arrow-btn" onclick="prevDay()">◀ 前一日</button>
     <div class="date-select-wrap">
@@ -210,7 +229,7 @@
     </div>
 
     <div class="checklist-panel">
-      <!-- 狀態工具列 -->
+      <!-- 頂部狀態列 -->
       <div class="sync-bar">
         <div class="sync-status">
           <span id="syncIcon">☁️</span>
@@ -248,8 +267,16 @@
         </div>
       </div>
 
+      <!-- 16項檢核清單 -->
       <div id="tasksContainer"></div>
 
+      <!-- ⭐️ 新增：打勾完成後的專屬底部快捷同步按鈕列 ⭐️ -->
+      <div class="checklist-bottom-sync">
+        <button class="btn btn-warning" onclick="forcePushCurrentDay()">📱 立即上傳這一天</button>
+        <button class="btn btn-success" onclick="syncAllFromCloud()">🔄 從雲端重新整理</button>
+      </div>
+
+      <!-- 今日筆記 -->
       <div class="notes-section">
         <label style="font-size: 0.8rem; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 4px;">
           今日飲食紀錄與身心覺察筆記：
@@ -515,7 +542,7 @@
       return (text || '').replace(/"/g, '&quot;');
     }
 
-    // ＝＝＝＝ 雙向同步強化模組 (支援 iOS 嚴格編碼與防中斷) ＝＝＝＝
+    // 雙向同步邏輯
     async function syncAllFromCloud() {
       const statusEl = document.getElementById("syncStatusText");
       statusEl.innerText = "連線雲端讀取中...";
@@ -577,7 +604,6 @@
       const targetDate = new Date(START_DATE);
       targetDate.setDate(targetDate.getDate() + dayIdx);
 
-      // 嚴格使用 encodeURIComponent 避免 iOS Safari 中斷 URL 傳遞
       const queryParams = [
         `action=save`,
         `dayIndex=${encodeURIComponent(dayIdx)}`,
@@ -591,22 +617,21 @@
       ].join("&");
 
       try {
-        statusEl.innerText = "手機正上傳至 Google 試算表...";
+        statusEl.innerText = "正上傳至 Google 試算表...";
         const res = await fetch(`${GAS_SYNC_URL}?${queryParams}`, { method: "GET", cache: "no-store" });
         const resJson = await res.json();
         if (resJson.status === "success") {
-          statusEl.innerText = `✅ 手機已同步 (${new Date().toLocaleTimeString().slice(0,5)})`;
-          if (showNotice) alert("🎉 成功！手機上的打勾與備註已同步至 Google 試算表！\n現在打開電腦點「從雲端重新整理」即可看到！");
+          statusEl.innerText = `✅ 雲端已同步 (${new Date().toLocaleTimeString().slice(0,5)})`;
+          if (showNotice) alert("🎉 成功！打勾與備註已同步至 Google 試算表！");
         } else {
           throw new Error(resJson.message);
         }
       } catch (e) {
         console.warn("上傳失敗:", e);
-        statusEl.innerText = "⚠️ 上傳未完成，請按「📱 立即上傳這一天」重試";
+        statusEl.innerText = "⚠️ 上傳未完成，請點按鈕重試";
       }
     }
 
-    // Google 試算表讀取健康26
     async function syncFromGoogleSheets() {
       const statusEl = document.getElementById("syncStatusText");
       statusEl.innerText = "正在連線健康26分頁...";
