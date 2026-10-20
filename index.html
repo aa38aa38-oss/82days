@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>82天生活化減重實戰檢核系統 (雲端雙向同步穩定版)</title>
+  <title>82天生活化減重實戰檢核系統 (手機雙向修復版)</title>
   <style>
     :root {
       --primary: #1e3a8a;
@@ -100,8 +100,8 @@
     .day-title { font-size: 1.15rem; font-weight: bold; color: var(--primary); }
     
     .sync-bar { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; }
-    .sync-status { font-size: 0.8rem; color: #166534; display: flex; align-items: center; gap: 6px; }
-    .sync-btns { display: flex; gap: 6px; }
+    .sync-status { font-size: 0.8rem; color: #166534; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    .sync-btns { display: flex; flex-wrap: wrap; gap: 6px; }
 
     .quick-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; width: 100%; margin-top: 8px; }
     .input-group { display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; }
@@ -173,6 +173,7 @@
     .btn-primary { background: var(--primary-light); color: white; }
     .btn-all { background: #4f46e5; color: white; }
     .btn-success { background: #059669; color: white; }
+    .btn-warning { background: #d97706; color: white; }
     .btn-outline { background: white; border: 1px solid var(--border); color: var(--text); }
 
     .ai-output-modal { margin-top: 14px; padding: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; display: none; }
@@ -184,7 +185,7 @@
 
   <header>
     <h1>82天生活化減重實戰檢核系統</h1>
-    <p>2026.10.20 - 2027.01.10 ｜ 100.8 kg ➔ 95.0 kg 以下 ｜ 雲端雙向同步</p>
+    <p>2026.10.20 - 2027.01.10 ｜ 100.8 kg ➔ 95.0 kg 以下 ｜ 手機電腦雙向同步版</p>
     <div class="stats-bar">
       <div class="stat-box"><div class="val" id="daysLeft">82</div><div class="lbl">剩餘天數</div></div>
       <div class="stat-box"><div class="val" id="todayDoneCount">0✔/0✖</div><div class="lbl">今日狀態</div></div>
@@ -209,15 +210,16 @@
     </div>
 
     <div class="checklist-panel">
+      <!-- 狀態工具列 -->
       <div class="sync-bar">
         <div class="sync-status">
-          <span>☁️</span>
-          <span id="syncStatusText">正在連線雲端資料庫...</span>
+          <span id="syncIcon">☁️</span>
+          <span id="syncStatusText">連線中...</span>
         </div>
         <div class="sync-btns">
-          <button class="btn btn-success" style="padding: 4px 8px; font-size: 0.75rem;" onclick="syncAllFromCloud()">從雲端重新整理</button>
-          <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="forcePushCurrentDay()">立即上傳這一天</button>
-          <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="syncFromGoogleSheets()">同步健康26飲食</button>
+          <button class="btn btn-warning" style="padding: 5px 10px; font-size: 0.8rem;" onclick="forcePushCurrentDay()">📱 立即上傳這一天</button>
+          <button class="btn btn-success" style="padding: 5px 10px; font-size: 0.8rem;" onclick="syncAllFromCloud()">🔄 從雲端重新整理</button>
+          <button class="btn btn-outline" style="padding: 5px 10px; font-size: 0.8rem;" onclick="syncFromGoogleSheets()">健康26飲食</button>
         </div>
       </div>
 
@@ -431,7 +433,7 @@
             </div>
           </div>
           <div>
-            <input type="text" class="task-note-input" placeholder="填寫此項備註或原因..." value="${escapeHtml(currentNote)}" oninput="setTaskNote(${index}, '${task.id}', this.value)">
+            <input type="text" class="task-note-input" placeholder="填寫此項備註或原因..." value="${escapeHtml(currentNote)}" onchange="setTaskNote(${index}, '${task.id}', this.value)" onblur="setTaskNote(${index}, '${task.id}', this.value)">
           </div>
         `;
         container.appendChild(row);
@@ -513,13 +515,14 @@
       return (text || '').replace(/"/g, '&quot;');
     }
 
-    // ＝＝＝＝ 雲端雙向即時同步邏輯 (全面改為 100% 不受阻擋的 GET 參數模式) ＝＝＝＝
+    // ＝＝＝＝ 雙向同步強化模組 (支援 iOS 嚴格編碼與防中斷) ＝＝＝＝
     async function syncAllFromCloud() {
       const statusEl = document.getElementById("syncStatusText");
-      statusEl.innerText = "正在連線雲端讀取紀錄...";
+      statusEl.innerText = "連線雲端讀取中...";
 
       try {
-        const res = await fetch(`${GAS_SYNC_URL}?action=load&t=${Date.now()}`);
+        const timestamp = new Date().getTime();
+        const res = await fetch(`${GAS_SYNC_URL}?action=load&_nocache=${timestamp}`, { cache: "no-store" });
         const json = await res.json();
         if (json.status === "success" && json.data) {
           let updatedCount = 0;
@@ -540,15 +543,15 @@
             saveDayData(dayIdx, localDay);
             updatedCount++;
           }
-          statusEl.innerText = `✅ 雲端已同步 (${new Date().toLocaleTimeString().slice(0,5)})`;
+          statusEl.innerText = `✅ 雲端已更新 (${new Date().toLocaleTimeString().slice(0,5)})`;
           renderDayData(selectedDayIndex);
           initDays();
         } else {
-          statusEl.innerText = "☁️ 雲端尚無紀錄";
+          statusEl.innerText = "☁️ 雲端無舊紀錄";
         }
       } catch (err) {
         console.warn("雲端讀取異常:", err);
-        statusEl.innerText = "⚠️ 離線使用本地快照中";
+        statusEl.innerText = "⚠️ 離線使用本機快照中";
       }
     }
 
@@ -558,12 +561,12 @@
 
     function triggerCloudPush(dayIdx) {
       const statusEl = document.getElementById("syncStatusText");
-      statusEl.innerText = "準備上傳雲端...";
+      statusEl.innerText = "變更中... 準備上傳";
 
       clearTimeout(autoSaveTimer);
       autoSaveTimer = setTimeout(() => {
         pushDayToCloud(dayIdx, false);
-      }, 800);
+      }, 600);
     }
 
     async function pushDayToCloud(dayIdx, showNotice) {
@@ -574,36 +577,36 @@
       const targetDate = new Date(START_DATE);
       targetDate.setDate(targetDate.getDate() + dayIdx);
 
-      const params = new URLSearchParams({
-        action: "save",
-        dayIndex: dayIdx,
-        dateStr: formatDateStandard(targetDate),
-        weight: data.weight || "",
-        steps: data.steps || "",
-        statusMap: JSON.stringify(data.statusMap || {}),
-        notesMap: JSON.stringify(data.notesMap || {}),
-        notes: data.notes || "",
-        t: Date.now()
-      });
+      // 嚴格使用 encodeURIComponent 避免 iOS Safari 中斷 URL 傳遞
+      const queryParams = [
+        `action=save`,
+        `dayIndex=${encodeURIComponent(dayIdx)}`,
+        `dateStr=${encodeURIComponent(formatDateStandard(targetDate))}`,
+        `weight=${encodeURIComponent(data.weight || "")}`,
+        `steps=${encodeURIComponent(data.steps || "")}`,
+        `statusMap=${encodeURIComponent(JSON.stringify(data.statusMap || {}))}`,
+        `notesMap=${encodeURIComponent(JSON.stringify(data.notesMap || {}))}`,
+        `notes=${encodeURIComponent(data.notes || "")}`,
+        `_t=${new Date().getTime()}`
+      ].join("&");
 
       try {
-        statusEl.innerText = "上傳雲端中...";
-        // 用 GET 發送參數，完全不走 POST，繞過 CORS 與 302 Redirect 阻擋
-        const res = await fetch(`${GAS_SYNC_URL}?${params.toString()}`);
+        statusEl.innerText = "手機正上傳至 Google 試算表...";
+        const res = await fetch(`${GAS_SYNC_URL}?${queryParams}`, { method: "GET", cache: "no-store" });
         const resJson = await res.json();
         if (resJson.status === "success") {
-          statusEl.innerText = `✅ 雲端已同步 (${new Date().toLocaleTimeString().slice(0,5)})`;
-          if (showNotice) alert("✅ 今日打勾與體重已成功儲存至 Google 試算表！");
+          statusEl.innerText = `✅ 手機已同步 (${new Date().toLocaleTimeString().slice(0,5)})`;
+          if (showNotice) alert("🎉 成功！手機上的打勾與備註已同步至 Google 試算表！\n現在打開電腦點「從雲端重新整理」即可看到！");
         } else {
           throw new Error(resJson.message);
         }
       } catch (e) {
         console.warn("上傳失敗:", e);
-        statusEl.innerText = "⚠️ 雲端連線失敗，已保存在本機";
+        statusEl.innerText = "⚠️ 上傳未完成，請按「📱 立即上傳這一天」重試";
       }
     }
 
-    // Google 試算表公開讀取 (健康26分頁)
+    // Google 試算表讀取健康26
     async function syncFromGoogleSheets() {
       const statusEl = document.getElementById("syncStatusText");
       statusEl.innerText = "正在連線健康26分頁...";
