@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>82天生活化減重實戰檢核系統 (雲端即時同步版)</title>
+  <title>82天生活化減重實戰檢核系統 (雲端雙向同步穩定版)</title>
   <style>
     :root {
       --primary: #1e3a8a;
@@ -30,7 +30,7 @@
     .stat-box .val { font-size: 1.05rem; font-weight: bold; color: #38bdf8; }
     .stat-box .lbl { font-size: 0.7rem; color: #cbd5e1; }
 
-    /* 手機頂部吸頂日期導航條 */
+    /* 手機頂部吸頂換日列 */
     .mobile-date-bar { display: none; }
     @media (max-width: 860px) {
       .mobile-date-bar {
@@ -83,7 +83,6 @@
       .calendar-sidebar { display: none; }
     }
 
-    /* 桌機側邊日誌軸 */
     .calendar-sidebar { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 12px; height: calc(100vh - 140px); overflow-y: auto; position: sticky; top: 16px; }
     .calendar-sidebar h2 { font-size: 0.95rem; margin-bottom: 10px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
     .day-list { display: flex; flex-direction: column; gap: 6px; }
@@ -96,7 +95,6 @@
     .badge-fail { background: #fee2e2; color: #991b1b; }
     .day-btn.has-sheet-data { border-left: 4px solid #10b981; }
 
-    /* 檢核主面板 */
     .checklist-panel { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
     .day-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--border); gap: 8px; }
     .day-title { font-size: 1.15rem; font-weight: bold; color: var(--primary); }
@@ -112,7 +110,6 @@
 
     .section-title { font-size: 0.9rem; font-weight: bold; color: var(--primary); margin: 16px 0 6px; padding-left: 6px; border-left: 3px solid var(--primary-light); }
     
-    /* 檢核卡片 */
     .task-row { 
       display: flex; 
       flex-direction: column; 
@@ -187,7 +184,7 @@
 
   <header>
     <h1>82天生活化減重實戰檢核系統</h1>
-    <p>2026.10.20 - 2027.01.10 ｜ 100.8 kg ➔ 95.0 kg 以下 ｜ 雲端即時雙向連動</p>
+    <p>2026.10.20 - 2027.01.10 ｜ 100.8 kg ➔ 95.0 kg 以下 ｜ 雲端雙向同步</p>
     <div class="stats-bar">
       <div class="stat-box"><div class="val" id="daysLeft">82</div><div class="lbl">剩餘天數</div></div>
       <div class="stat-box"><div class="val" id="todayDoneCount">0✔/0✖</div><div class="lbl">今日狀態</div></div>
@@ -197,7 +194,6 @@
     </div>
   </header>
 
-  <!-- 手機頂部吸頂換日列 -->
   <div class="mobile-date-bar">
     <button type="button" class="nav-arrow-btn" onclick="prevDay()">◀ 前一日</button>
     <div class="date-select-wrap">
@@ -207,22 +203,20 @@
   </div>
 
   <div class="main-layout">
-    <!-- 桌機側邊日誌軸 -->
     <div class="calendar-sidebar">
       <h2>執行日誌軸 <span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);" id="dateRangeTxt">Day 1 / 82</span></h2>
       <div class="day-list" id="dayListContainer"></div>
     </div>
 
-    <!-- 檢核面板 -->
     <div class="checklist-panel">
-      <!-- 試算表與雲端雙向狀態 -->
       <div class="sync-bar">
         <div class="sync-status">
           <span>☁️</span>
           <span id="syncStatusText">正在連線雲端資料庫...</span>
         </div>
         <div class="sync-btns">
-          <button class="btn btn-success" style="padding: 4px 8px; font-size: 0.75rem;" onclick="syncAllFromCloud()">手動重整雲端</button>
+          <button class="btn btn-success" style="padding: 4px 8px; font-size: 0.75rem;" onclick="syncAllFromCloud()">從雲端重新整理</button>
+          <button class="btn btn-primary" style="padding: 4px 8px; font-size: 0.75rem;" onclick="forcePushCurrentDay()">立即上傳這一天</button>
           <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="syncFromGoogleSheets()">同步健康26飲食</button>
         </div>
       </div>
@@ -252,10 +246,8 @@
         </div>
       </div>
 
-      <!-- 檢核清單 -->
       <div id="tasksContainer"></div>
 
-      <!-- 今日筆記 -->
       <div class="notes-section">
         <label style="font-size: 0.8rem; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 4px;">
           今日飲食紀錄與身心覺察筆記：
@@ -263,7 +255,6 @@
         <textarea id="inputNotes" placeholder="試算表早午晚餐食物會自動帶入此處，亦可補充整日心情或多巴胺天平反思..."></textarea>
       </div>
 
-      <!-- 操作按鈕列 -->
       <div class="action-bar">
         <button class="btn btn-primary" onclick="generateAiSummary('today')">產生「今日完整健檢」傳給 AI</button>
         <div class="action-sub-grid">
@@ -273,7 +264,6 @@
         <button class="btn btn-outline" style="color: #94a3b8;" onclick="clearCurrentDay()">清空當日內容</button>
       </div>
 
-      <!-- AI 輸出區塊 -->
       <div class="ai-output-modal" id="aiOutputModal">
         <h3>已產生 AI 診斷報告（點擊即可全選複製）：</h3>
         <textarea id="aiSummaryText" readonly onclick="this.select();"></textarea>
@@ -283,10 +273,7 @@
   </div>
 
   <script>
-    // 你的專屬 Google Apps Script 雲端雙向同步網址
     const GAS_SYNC_URL = "https://script.google.com/macros/s/AKfycbzUvzvhNcnMTaM-i3DVnsTzRkTDLluinBR5TsKJSALqCZ032n32u5lF_VLoXzx88bgxhw/exec";
-    
-    // 試算表公開讀取設定 (抓取健康26原始飲食)
     const SHEET_ID = "1s31loEC6sXWlwuZsGITdkDK2H9EhJHCfhwhrPobZjmM";
     const GID = "1406862296"; 
     const START_DATE = new Date(2026, 9, 20); 
@@ -371,20 +358,12 @@
       return `${yyyy}/${mm}/${dd}`;
     }
 
-    function prevDay() {
-      if (selectedDayIndex > 0) selectDay(selectedDayIndex - 1);
-    }
-
-    function nextDay() {
-      if (selectedDayIndex < TOTAL_DAYS - 1) selectDay(selectedDayIndex + 1);
-    }
+    function prevDay() { if (selectedDayIndex > 0) selectDay(selectedDayIndex - 1); }
+    function nextDay() { if (selectedDayIndex < TOTAL_DAYS - 1) selectDay(selectedDayIndex + 1); }
 
     function selectDay(index) {
       selectedDayIndex = index;
-      
-      document.querySelectorAll(".day-btn").forEach((btn, i) => {
-        btn.classList.toggle("active", i === index);
-      });
+      document.querySelectorAll(".day-btn").forEach((btn, i) => btn.classList.toggle("active", i === index));
       const mobileSelect = document.getElementById("mobileDaySelector");
       if (mobileSelect) mobileSelect.value = index;
 
@@ -534,13 +513,13 @@
       return (text || '').replace(/"/g, '&quot;');
     }
 
-    // ＝＝＝＝ 雲端雙向即時同步邏輯 (GAS API) ＝＝＝＝
+    // ＝＝＝＝ 雲端雙向即時同步邏輯 (全面改為 100% 不受阻擋的 GET 參數模式) ＝＝＝＝
     async function syncAllFromCloud() {
       const statusEl = document.getElementById("syncStatusText");
-      statusEl.innerText = "正在自雲端載入最新打勾與體重...";
+      statusEl.innerText = "正在連線雲端讀取紀錄...";
 
       try {
-        const res = await fetch(GAS_SYNC_URL);
+        const res = await fetch(`${GAS_SYNC_URL}?action=load&t=${Date.now()}`);
         const json = await res.json();
         if (json.status === "success" && json.data) {
           let updatedCount = 0;
@@ -548,11 +527,14 @@
             const cloudDay = json.data[dayIdx];
             const localDay = loadDayData(dayIdx) || { statusMap: {}, notesMap: {} };
             
-            // 雲端資料與本地合併
             if (cloudDay.weight) localDay.weight = cloudDay.weight;
             if (cloudDay.steps) localDay.steps = cloudDay.steps;
-            if (cloudDay.statusMap) localDay.statusMap = Object.assign(localDay.statusMap || {}, cloudDay.statusMap);
-            if (cloudDay.notesMap) localDay.notesMap = Object.assign(localDay.notesMap || {}, cloudDay.notesMap);
+            if (cloudDay.statusMap && Object.keys(cloudDay.statusMap).length > 0) {
+              localDay.statusMap = cloudDay.statusMap;
+            }
+            if (cloudDay.notesMap && Object.keys(cloudDay.notesMap).length > 0) {
+              localDay.notesMap = cloudDay.notesMap;
+            }
             if (cloudDay.notes) localDay.notes = cloudDay.notes;
 
             saveDayData(dayIdx, localDay);
@@ -562,54 +544,66 @@
           renderDayData(selectedDayIndex);
           initDays();
         } else {
-          statusEl.innerText = "☁️ 雲端尚無舊紀錄，就緒中";
+          statusEl.innerText = "☁️ 雲端尚無紀錄";
         }
       } catch (err) {
         console.warn("雲端讀取異常:", err);
-        statusEl.innerText = "⚠️ 離線模式 (已使用本地快照)";
+        statusEl.innerText = "⚠️ 離線使用本地快照中";
       }
     }
 
-    // 防抖動自動推送至雲端
-    function triggerCloudPush(dayIdx) {
-      const statusEl = document.getElementById("syncStatusText");
-      statusEl.innerText = "變更中... 準備上傳雲端";
-
-      clearTimeout(autoSaveTimer);
-      autoSaveTimer = setTimeout(async () => {
-        const data = loadDayData(dayIdx);
-        if (!data) return;
-
-        const targetDate = new Date(START_DATE);
-        targetDate.setDate(targetDate.getDate() + dayIdx);
-
-        const payload = {
-          dayIndex: dayIdx,
-          dateStr: formatDateStandard(targetDate),
-          weight: data.weight || "",
-          steps: data.steps || "",
-          statusMap: data.statusMap || {},
-          notesMap: data.notesMap || {},
-          notes: data.notes || ""
-        };
-
-        try {
-          statusEl.innerText = "上傳雲端中...";
-          await fetch(GAS_SYNC_URL, {
-            method: "POST",
-            mode: "no-cors", // 避免瀏覽器 CORS 擋掉
-            headers: { "Content-Type": "text/plain" },
-            body: JSON.stringify(payload)
-          });
-          statusEl.innerText = `✅ 雲端已同步 (${new Date().toLocaleTimeString().slice(0,5)})`;
-        } catch (e) {
-          console.warn("上傳失敗:", e);
-          statusEl.innerText = "⚠️ 雲端連線失敗，已保存在本機";
-        }
-      }, 1000);
+    function forcePushCurrentDay() {
+      pushDayToCloud(selectedDayIndex, true);
     }
 
-    // Google 試算表公開讀取 (健康26 工作表飲食)
+    function triggerCloudPush(dayIdx) {
+      const statusEl = document.getElementById("syncStatusText");
+      statusEl.innerText = "準備上傳雲端...";
+
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        pushDayToCloud(dayIdx, false);
+      }, 800);
+    }
+
+    async function pushDayToCloud(dayIdx, showNotice) {
+      const statusEl = document.getElementById("syncStatusText");
+      const data = loadDayData(dayIdx);
+      if (!data) return;
+
+      const targetDate = new Date(START_DATE);
+      targetDate.setDate(targetDate.getDate() + dayIdx);
+
+      const params = new URLSearchParams({
+        action: "save",
+        dayIndex: dayIdx,
+        dateStr: formatDateStandard(targetDate),
+        weight: data.weight || "",
+        steps: data.steps || "",
+        statusMap: JSON.stringify(data.statusMap || {}),
+        notesMap: JSON.stringify(data.notesMap || {}),
+        notes: data.notes || "",
+        t: Date.now()
+      });
+
+      try {
+        statusEl.innerText = "上傳雲端中...";
+        // 用 GET 發送參數，完全不走 POST，繞過 CORS 與 302 Redirect 阻擋
+        const res = await fetch(`${GAS_SYNC_URL}?${params.toString()}`);
+        const resJson = await res.json();
+        if (resJson.status === "success") {
+          statusEl.innerText = `✅ 雲端已同步 (${new Date().toLocaleTimeString().slice(0,5)})`;
+          if (showNotice) alert("✅ 今日打勾與體重已成功儲存至 Google 試算表！");
+        } else {
+          throw new Error(resJson.message);
+        }
+      } catch (e) {
+        console.warn("上傳失敗:", e);
+        statusEl.innerText = "⚠️ 雲端連線失敗，已保存在本機";
+      }
+    }
+
+    // Google 試算表公開讀取 (健康26分頁)
     async function syncFromGoogleSheets() {
       const statusEl = document.getElementById("syncStatusText");
       statusEl.innerText = "正在連線健康26分頁...";
@@ -718,7 +712,6 @@
       }
     }
 
-    // AI 診斷報告生成
     function generateAiSummary(mode) {
       const outputModal = document.getElementById("aiOutputModal");
       const textarea = document.getElementById("aiSummaryText");
@@ -843,7 +836,6 @@ ${pendingList.map(item => "  " + item).join("\n") || "  (無)"}
       textarea.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // 啟動初始化與雲端載入
     initDays();
     selectDay(0);
     syncAllFromCloud();
