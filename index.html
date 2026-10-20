@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>82天生活化減重實戰檢核系統 (含晨起量體重檢核)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>82天生活化減重實戰檢核系統 (手機最佳化版)</title>
   <style>
     :root {
       --primary: #1e3a8a;
@@ -18,132 +18,220 @@
       --border: #e2e8f0;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 16px; max-width: 1300px; margin: 0 auto; line-height: 1.5; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background-color: var(--bg); color: var(--text); padding: 12px; max-width: 1300px; margin: 0 auto; line-height: 1.45; }
     
-    header { background: linear-gradient(135deg, var(--primary), #0f172a); color: white; padding: 22px; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    header h1 { font-size: 1.45rem; margin-bottom: 6px; }
-    header p { color: #94a3b8; font-size: 0.9rem; }
+    header { background: linear-gradient(135deg, var(--primary), #0f172a); color: white; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    header h1 { font-size: 1.2rem; margin-bottom: 4px; }
+    header p { color: #94a3b8; font-size: 0.8rem; }
     
-    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 16px; }
-    .stat-box { background: rgba(255,255,255,0.08); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
-    .stat-box .val { font-size: 1.2rem; font-weight: bold; color: #38bdf8; }
-    .stat-box .lbl { font-size: 0.75rem; color: #cbd5e1; }
+    .stats-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-top: 12px; }
+    .stat-box { background: rgba(255,255,255,0.08); padding: 8px 4px; border-radius: 6px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+    .stat-box .val { font-size: 1.05rem; font-weight: bold; color: #38bdf8; }
+    .stat-box .lbl { font-size: 0.7rem; color: #cbd5e1; }
 
-    .main-layout { display: grid; grid-template-columns: 290px 1fr; gap: 20px; }
-    @media (max-width: 900px) { .main-layout { grid-template-columns: 1fr; } }
+    /* 手機頂部吸頂日期導航條 (Mobile Sticky Nav) */
+    .mobile-date-bar { display: none; }
+    @media (max-width: 860px) {
+      .mobile-date-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #ffffff;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 8px 12px;
+        margin-bottom: 12px;
+        position: sticky;
+        top: 8px;
+        z-index: 100;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      }
+      .nav-arrow-btn {
+        background: #f1f5f9;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: var(--primary);
+        cursor: pointer;
+      }
+      .date-select-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        margin: 0 8px;
+      }
+      .mobile-date-select {
+        font-size: 0.95rem;
+        font-weight: bold;
+        color: var(--primary);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 4px 8px;
+        background: white;
+        width: 100%;
+        text-align: center;
+      }
+    }
 
-    /* 左側日誌軸 */
-    .calendar-sidebar { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 14px; height: calc(100vh - 180px); overflow-y: auto; position: sticky; top: 16px; }
-    .calendar-sidebar h2 { font-size: 1.05rem; margin-bottom: 12px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
+    .main-layout { display: grid; grid-template-columns: 270px 1fr; gap: 16px; }
+    @media (max-width: 860px) { 
+      .main-layout { display: block; } 
+      .calendar-sidebar { display: none; } /* 手機端隱藏冗長的大列表，由吸頂導航條接管 */
+    }
+
+    /* 桌機日誌側邊欄 */
+    .calendar-sidebar { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 12px; height: calc(100vh - 140px); overflow-y: auto; position: sticky; top: 16px; }
+    .calendar-sidebar h2 { font-size: 0.95rem; margin-bottom: 10px; color: var(--primary); display: flex; justify-content: space-between; align-items: center; }
     .day-list { display: flex; flex-direction: column; gap: 6px; }
-    .day-btn { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); background: white; cursor: pointer; text-align: left; transition: all 0.2s; font-size: 0.88rem; }
+    .day-btn { display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: white; cursor: pointer; text-align: left; transition: all 0.15s; font-size: 0.82rem; }
     .day-btn:hover { background: #f1f5f9; }
     .day-btn.active { border-color: var(--primary-light); background: #eff6ff; font-weight: bold; }
-    .day-btn .badge-box { display: flex; gap: 4px; font-size: 0.72rem; }
-    .badge { padding: 2px 5px; border-radius: 4px; }
+    .day-btn .badge-box { display: flex; gap: 3px; font-size: 0.7rem; }
+    .badge { padding: 1px 4px; border-radius: 3px; }
     .badge-ok { background: #dcfce7; color: #166534; }
     .badge-fail { background: #fee2e2; color: #991b1b; }
     .day-btn.has-sheet-data { border-left: 4px solid #10b981; }
 
-    /* 右側檢核面板 */
-    .checklist-panel { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 22px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-    .day-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 2px solid var(--border); gap: 12px; }
-    .day-title { font-size: 1.25rem; font-weight: bold; color: var(--primary); }
+    /* 檢核主面板 */
+    .checklist-panel { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
+    .day-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 2px solid var(--border); gap: 8px; }
+    .day-title { font-size: 1.15rem; font-weight: bold; color: var(--primary); }
     
-    .sync-bar { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
-    .sync-status { font-size: 0.85rem; color: #166534; display: flex; align-items: center; gap: 6px; }
-    .sync-btns { display: flex; gap: 8px; }
+    .sync-bar { background: #f0fdf4; border: 1px solid #bbf7d0; padding: 8px 12px; border-radius: 8px; margin-bottom: 12px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; }
+    .sync-status { font-size: 0.8rem; color: #166534; display: flex; align-items: center; gap: 4px; }
+    .sync-btns { display: flex; gap: 6px; }
 
-    .quick-inputs { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; margin-top: 10px; }
-    .input-group { display: flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; }
-    .input-group label { font-size: 0.8rem; font-weight: bold; color: var(--text-muted); }
-    .input-group input { width: 80px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; background: white; }
+    .quick-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; width: 100%; margin-top: 8px; }
+    .input-group { display: flex; align-items: center; justify-content: space-between; background: #f1f5f9; padding: 6px 10px; border-radius: 6px; }
+    .input-group label { font-size: 0.78rem; font-weight: bold; color: var(--text-muted); }
+    .input-group input { width: 68px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.85rem; background: white; text-align: right; }
 
-    /* 任務檢核項目 */
-    .section-title { font-size: 0.95rem; font-weight: bold; color: var(--primary); margin: 18px 0 8px; display: flex; align-items: center; gap: 6px; }
+    .section-title { font-size: 0.9rem; font-weight: bold; color: var(--primary); margin: 16px 0 6px; padding-left: 6px; border-left: 3px solid var(--primary-light); }
     
-    .task-row { display: grid; grid-template-columns: 88px 1fr 220px; align-items: center; gap: 10px; padding: 8px 12px; background: #f8fafc; border-radius: 8px; margin-bottom: 6px; border: 1px solid #edf2f7; transition: background 0.15s; }
-    .task-row:hover { background: #f1f5f9; }
-    @media (max-width: 768px) {
-      .task-row { grid-template-columns: 1fr; gap: 6px; }
-      .task-note-input { width: 100% !important; }
+    /* 檢核項目卡片 (針對直式手機全面拉開觸控面積) */
+    .task-row { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 6px; 
+      padding: 10px 12px; 
+      background: #f8fafc; 
+      border-radius: 8px; 
+      margin-bottom: 8px; 
+      border: 1px solid #edf2f7; 
     }
-
-    /* 狀態按鈕組 */
-    .status-group { display: flex; gap: 4px; }
-    .status-btn { width: 38px; height: 32px; border-radius: 6px; border: 1px solid var(--border); background: white; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: 0.15s; display: flex; align-items: center; justify-content: center; }
+    .task-top { 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+    .status-group { 
+      display: flex; 
+      gap: 6px; 
+      flex-shrink: 0; 
+    }
+    .status-btn { 
+      width: 44px; 
+      height: 38px; 
+      border-radius: 6px; 
+      border: 1px solid var(--border); 
+      background: white; 
+      font-size: 1.05rem; 
+      font-weight: bold; 
+      cursor: pointer; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      touch-action: manipulation;
+    }
     .status-btn.btn-ok { color: var(--accent-ok); }
     .status-btn.btn-ok.active { background: var(--accent-ok); color: white; border-color: var(--accent-ok); }
     .status-btn.btn-fail { color: var(--accent-fail); }
     .status-btn.btn-fail.active { background: var(--accent-fail); color: white; border-color: var(--accent-fail); }
 
     .task-info { flex: 1; }
-    .task-title { font-size: 0.9rem; font-weight: 600; }
-    .task-desc { font-size: 0.78rem; color: var(--text-muted); }
+    .task-title { font-size: 0.88rem; font-weight: 600; line-height: 1.3; }
+    .task-desc { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
     
-    .task-note-input { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.82rem; background: white; }
+    .task-note-input { 
+      width: 100%; 
+      padding: 6px 10px; 
+      border: 1px solid var(--border); 
+      border-radius: 6px; 
+      font-size: 0.8rem; 
+      background: white; 
+    }
     .task-note-input:focus { outline: none; border-color: var(--primary-light); }
 
-    /* 筆記區塊 */
-    .notes-section { margin-top: 18px; }
-    .notes-section textarea { width: 100%; height: 75px; padding: 10px; border-radius: 8px; border: 1px solid var(--border); resize: vertical; font-size: 0.88rem; }
+    .notes-section { margin-top: 14px; }
+    .notes-section textarea { width: 100%; height: 75px; padding: 8px; border-radius: 6px; border: 1px solid var(--border); resize: vertical; font-size: 0.82rem; }
     
-    .action-bar { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
-    .btn { padding: 9px 15px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.86rem; }
+    /* 底部操作按鈕 */
+    .action-bar { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+    .action-sub-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    
+    .btn { padding: 10px 14px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; transition: 0.15s; font-size: 0.85rem; text-align: center; }
     .btn-primary { background: var(--primary-light); color: white; }
-    .btn-primary:hover { background: #1d4ed8; }
     .btn-all { background: #4f46e5; color: white; }
-    .btn-all:hover { background: #4338ca; }
     .btn-success { background: #059669; color: white; }
-    .btn-success:hover { background: #047857; }
     .btn-outline { background: white; border: 1px solid var(--border); color: var(--text); }
-    .btn-outline:hover { background: #f1f5f9; }
 
-    .ai-output-modal { margin-top: 16px; padding: 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; display: none; }
-    .ai-output-modal h3 { font-size: 0.9rem; color: #065f46; margin-bottom: 6px; }
-    .ai-output-modal textarea { width: 100%; height: 160px; font-family: monospace; font-size: 0.82rem; padding: 8px; border-radius: 4px; border: 1px solid #6ee7b7; }
+    .ai-output-modal { margin-top: 14px; padding: 12px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; display: none; }
+    .ai-output-modal h3 { font-size: 0.85rem; color: #065f46; margin-bottom: 4px; }
+    .ai-output-modal textarea { width: 100%; height: 150px; font-family: monospace; font-size: 0.78rem; padding: 6px; border-radius: 4px; border: 1px solid #6ee7b7; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>82天生活化減重實戰檢核系統 (含晨起量體重檢核)</h1>
-    <p>2026.10.20 - 2027.01.10 ｜ 目標：100.8 kg ➔ 95.0 kg 以下 ｜ 支援 ✔做到、✖沒做到 與各項獨立備註</p>
+    <h1>82天生活化減重實戰檢核系統</h1>
+    <p>2026.10.20 - 2027.01.10 ｜ 100.8 kg ➔ 95.0 kg 以下</p>
     <div class="stats-bar">
       <div class="stat-box"><div class="val" id="daysLeft">82</div><div class="lbl">剩餘天數</div></div>
-      <div class="stat-box"><div class="val" id="todayDoneCount">0 ✔ / 0 ✖</div><div class="lbl">今日執行狀態</div></div>
-      <div class="stat-box"><div class="val" id="currentWeightVal">100.8</div><div class="lbl">最新體重 (kg)</div></div>
-      <div class="stat-box"><div class="val" id="todaySheetCalories">--</div><div class="lbl">今日試算表總熱量</div></div>
-      <div class="stat-box"><div class="val" id="loggedDaysCount">0 / 82</div><div class="lbl">累積記錄天數</div></div>
+      <div class="stat-box"><div class="val" id="todayDoneCount">0✔/0✖</div><div class="lbl">今日狀態</div></div>
+      <div class="stat-box"><div class="val" id="currentWeightVal">100.8</div><div class="lbl">最新體重(kg)</div></div>
+      <div class="stat-box"><div class="val" id="todaySheetCalories">--</div><div class="lbl">今日熱量</div></div>
+      <div class="stat-box"><div class="val" id="loggedDaysCount">0/82</div><div class="lbl">記錄天數</div></div>
     </div>
   </header>
 
+  <!-- 手機專用頂部吸頂快速換日條 (置頂不擋視線) -->
+  <div class="mobile-date-bar">
+    <button type="button" class="nav-arrow-btn" onclick="prevDay()">◀ 前一日</button>
+    <div class="date-select-wrap">
+      <select id="mobileDaySelector" class="mobile-date-select" onchange="selectDay(parseInt(this.value))"></select>
+    </div>
+    <button type="button" class="nav-arrow-btn" onclick="nextDay()">後一日 ▶</button>
+  </div>
+
   <div class="main-layout">
-    <!-- 左側日誌軸 -->
+    <!-- 桌機側邊日誌軸 (手機端自動隱藏) -->
     <div class="calendar-sidebar">
-      <h2>執行日誌軸 <span style="font-size: 0.78rem; font-weight: normal; color: var(--text-muted);" id="dateRangeTxt">Day 1 / 82</span></h2>
+      <h2>執行日誌軸 <span style="font-size: 0.75rem; font-weight: normal; color: var(--text-muted);" id="dateRangeTxt">Day 1 / 82</span></h2>
       <div class="day-list" id="dayListContainer"></div>
     </div>
 
-    <!-- 右側檢核面板 -->
+    <!-- 檢核面板 -->
     <div class="checklist-panel">
       <!-- 試算表連動工具條 -->
       <div class="sync-bar">
         <div class="sync-status">
-          <span style="font-size: 1rem;">📊</span>
-          <span id="syncStatusText">試算表「健康26」連動待命中</span>
+          <span>📊</span>
+          <span id="syncStatusText">試算表連動待命中</span>
         </div>
         <div class="sync-btns">
-          <button class="btn btn-success" style="padding: 6px 12px; font-size: 0.8rem;" onclick="syncFromGoogleSheets()">從 Google 試算表自動同步</button>
-          <button class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem;" onclick="pasteSheetRowData()">貼上試算表文字同步</button>
+          <button class="btn btn-success" style="padding: 4px 8px; font-size: 0.75rem;" onclick="syncFromGoogleSheets()">自動同步</button>
+          <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="pasteSheetRowData()">貼上同步</button>
         </div>
       </div>
 
       <div class="day-header">
         <div>
           <div class="day-title" id="currentDayTitle">載入中...</div>
-          <div style="font-size: 0.82rem; color: var(--text-muted);" id="currentDaySubtitle">第 1 天 ｜ 距 2027.01.10 還有 82 天</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted);" id="currentDaySubtitle">第 1 天 ｜ 距目標還剩 82 天</div>
         </div>
         <div class="quick-inputs">
           <div class="input-group">
@@ -151,7 +239,7 @@
             <input type="number" step="0.1" id="inputWeight" placeholder="kg">
           </div>
           <div class="input-group">
-            <label>總熱量(表)</label>
+            <label>熱量(表)</label>
             <input type="number" step="10" id="inputCalories" placeholder="kcal">
           </div>
           <div class="input-group">
@@ -160,72 +248,75 @@
           </div>
           <div class="input-group">
             <label>步數</label>
-            <input type="number" step="100" id="inputSteps" placeholder="步數">
+            <input type="number" step="100" id="inputSteps" placeholder="步">
           </div>
         </div>
       </div>
 
-      <!-- 檢核清單 (已加入清晨量體重檢核) -->
+      <!-- 檢核清單 -->
       <div id="tasksContainer"></div>
 
-      <!-- 飲食紀錄與反思 -->
+      <!-- 今日筆記 -->
       <div class="notes-section">
-        <label style="font-size: 0.85rem; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 6px;">
-          今日整體飲食紀錄與身心覺察總結：
+        <label style="font-size: 0.8rem; font-weight: bold; color: var(--text-muted); display: block; margin-bottom: 4px;">
+          今日飲食紀錄與身心覺察筆記：
         </label>
-        <textarea id="inputNotes" placeholder="試算表早午晚餐食物將自動帶入此處，亦可補充整日心情、壓力狀態或多巴胺天平反思..."></textarea>
+        <textarea id="inputNotes" placeholder="試算表早午晚餐食物會自動帶入此處，亦可補充整日心情或多巴胺天平反思..."></textarea>
       </div>
 
-      <!-- 操作按鈕列 -->
+      <!-- 操作按鈕列 (適合手機單手直向點選) -->
       <div class="action-bar">
         <button class="btn btn-primary" onclick="generateAiSummary('today')">產生「今日完整健檢」傳給 AI</button>
-        <button class="btn btn-outline" onclick="generateAiSummary('weekly')">匯出「近 7 日趨勢」傳給 AI</button>
-        <button class="btn btn-all" onclick="generateAiSummary('all')">匯出「Day 1 到目前所有紀錄」傳給 AI</button>
-        <button class="btn btn-outline" onclick="clearCurrentDay()">清空當日內容</button>
+        <div class="action-sub-grid">
+          <button class="btn btn-outline" onclick="generateAiSummary('weekly')">近 7 日趨勢</button>
+          <button class="btn btn-all" onclick="generateAiSummary('all')">Day 1 至今總覽</button>
+        </div>
+        <button class="btn btn-outline" style="color: #94a3b8;" onclick="clearCurrentDay()">清空當日內容</button>
       </div>
 
       <!-- AI 輸出區塊 -->
       <div class="ai-output-modal" id="aiOutputModal">
-        <h3>已產生包含晨起量體重與 ✔/✖ 備註的 AI 診斷報告（點擊即可全選複製）：</h3>
+        <h3>已產生 AI 診斷報告（點擊即可全選複製）：</h3>
         <textarea id="aiSummaryText" readonly onclick="this.select();"></textarea>
-        <p style="font-size: 0.78rem; color: #047857; margin-top: 4px;">複製上方文字直接貼回我們在此對話視窗，我會精準分析你未達成項目的關鍵阻力！</p>
+        <p style="font-size: 0.75rem; color: #047857; margin-top: 4px;">複製文字後直接貼回對話視窗，我會立即為你精準診斷！</p>
       </div>
     </div>
   </div>
 
   <script>
     const SHEET_ID = "1s31loEC6sXWlwuZsGITdkDK2H9EhJHCfhwhrPobZjmM";
-    const GID = "1406862296"; // 健康26
-    const START_DATE = new Date(2026, 9, 20); // 2026-10-20
+    const GID = "1406862296"; 
+    const START_DATE = new Date(2026, 9, 20); 
     const TOTAL_DAYS = 82;
     let selectedDayIndex = 0;
 
-    // 16 項全生理與正念微習慣 (加入晨起量體重)
     const TASK_TEMPLATES = [
-      { id: "m_weigh", section: "清晨：甦醒與定錨", title: "清晨空腹量體重與記錄", desc: "如廁後、未進食前測量，客觀觀察趨勢，不為單日浮動焦慮" },
+      { id: "m_weigh", section: "清晨：甦醒與定錨", title: "清晨空腹量體重與記錄", desc: "如廁後、未進食前測量，客觀觀察趨勢" },
       { id: "m_water", section: "清晨：甦醒與定錨", title: "晨起小口慢飲溫水 300-500ml", desc: "啟動代謝引擎，改善輕微脫水，不猛灌牛飲" },
-      { id: "m_mindful", section: "清晨：甦醒與定錨", title: "靜坐調息或溫和伸展 5-10 分鐘", desc: "接觸晨光，安定心神，建立全日正向專注基調" },
-      { id: "m_protein", section: "清晨：甦醒與定錨", title: "早餐以高蛋白質為核心", desc: "蛋、無糖豆漿或起司蛋餅，穩定全日血糖與多巴胺" },
+      { id: "m_mindful", section: "清晨：甦醒與定錨", title: "靜坐調息或溫和伸展 5-10 分鐘", desc: "接觸晨光，安定心神，建立正向專注基調" },
+      { id: "m_protein", section: "清晨：甦醒與定錨", title: "早餐以高蛋白質為核心", desc: "蛋、無糖豆漿或起司蛋餅，穩定血糖與多巴胺" },
       
-      { id: "d_water", section: "日間辦公與微活動", title: "餐前 10 分鐘小口啜飲 400-500ml 水", desc: "防止大腦將口渴誤判為飢餓，提升代謝率" },
-      { id: "d_lunch_211", section: "日間辦公與微活動", title: "午餐落實 211 比例與順序 (菜➔湯➔肉➔飯)", desc: "蔬菜量與飯等量，細嚼慢嚥20-30下，白飯減半或未精緻澱粉" },
-      { id: "d_cleanplate", section: "日間辦公與微活動", title: "戒除「清盤」執念，七八分飽即停", desc: "不把胃當廚餘桶，放下筷子，不邊看螢幕邊狼吞虎嚥" },
+      { id: "d_water", section: "日間辦公與微活動", title: "餐前 10 分鐘小口啜飲 400-500ml 水", desc: "防止大腦將口渴誤判為飢餓" },
+      { id: "d_lunch_211", section: "日間辦公與微活動", title: "午餐落實 211 與順序 (菜➔湯➔肉➔飯)", desc: "蔬菜量與飯等量，細嚼慢嚥，白飯減半" },
+      { id: "d_cleanplate", section: "日間辦公與微活動", title: "戒除「清盤」執念，七八分飽即停", desc: "不把胃當廚餘桶，放下筷子，不邊看螢幕邊吃" },
       { id: "d_post_walk", section: "日間辦公與微活動", title: "飯後黃金 30 分鐘起身走動 15-20 分鐘", desc: "調動大肌群收縮，抑制餐後血糖大幅飆升" },
-      { id: "d_snack_hack", section: "日間辦公與微活動", title: "平息食物噪音：下午茶替換或精緻品嘗", desc: "自問是否真的餓；以無糖豆漿/茶葉蛋替代；若吃只吃最頂級" },
+      { id: "d_snack_hack", section: "日間辦公與微活動", title: "平息食物噪音：下午茶替換或精緻品嘗", desc: "自問是否真的餓；以無糖豆漿/茶葉蛋替代" },
 
       { id: "e_neat", section: "傍晚、運動與晚餐", title: "維持全日微活動 (NEAT 步數達標)", desc: "以日均 11,000 步為基準，打破補償性久坐" },
-      { id: "e_workout", section: "傍晚、運動與晚餐", title: "規律慢健身或重訓 (運動零食/肌力鍛鍊)", desc: "只給自己五分鐘原則，重視大肌群收縮與後燃效應" },
-      { id: "e_post_refuel", section: "傍晚、運動與晚餐", title: "運動後 30-60 分鐘內黃金補給", desc: "約 300 大卡、碳水:蛋白質=3:1 輕食，促進修復不挨餓" },
-      { id: "e_dinner_211", section: "傍晚、運動與晚餐", title: "晚餐落實 211 原則與避免炸物", desc: "菜肉飯順序，若聚餐落實掌舵訂位或隔天回歸常軌" },
-      { id: "e_glut4", section: "傍晚、運動與晚餐", title: "大餐後 60-90 分鐘徒手深蹲 2-3 組", desc: "活化 GLUT4 葡萄糖轉運蛋白，直接由肌肉搬運利用血糖" },
+      { id: "e_workout", section: "傍晚、運動與晚餐", title: "規律慢健身或重訓 (運動零食/肌力鍛鍊)", desc: "只給自己五分鐘原則，重視大肌群收縮與後燃" },
+      { id: "e_post_refuel", section: "傍晚、運動與晚餐", title: "運動後 30-60 分鐘內黃金補給", desc: "約 300 大卡、碳水:蛋白質=3:1 輕食，促修復" },
+      { id: "e_dinner_211", section: "傍晚、運動與晚餐", title: "晚餐落實 211 原則與避免炸物", desc: "菜肉飯順序，若聚餐落實掌舵訂位" },
+      { id: "e_glut4", section: "傍晚、運動與晚餐", title: "大餐後 60-90 分鐘徒手深蹲 2-3 組", desc: "活化 GLUT4 轉運蛋白，直接由肌肉搬運利用血糖" },
 
-      { id: "n_stretch", section: "夜間修復與睡眠", title: "睡前 10 分鐘脊椎與髖部骨盆伸展", desc: "今日疲勞今日消，釋放腰椎壓力，舒緩緊繃自律神經" },
-      { id: "n_sleep", section: "夜間修復與睡眠", title: "晚間若餓飲熱牛蒡茶 / 確保優質睡眠", desc: "穩定瘦素分泌，不帶著飢餓或罪惡感入眠" }
+      { id: "n_stretch", section: "夜間修復與睡眠", title: "睡前 10 分鐘脊椎與髖部骨盆伸展", desc: "今日疲勞今日消，釋放腰椎壓力，舒緩自律神經" },
+      { id: "n_sleep", section: "夜間修復與睡眠", title: "晚間若餓飲熱牛蒡茶 / 確保優質睡眠", desc: "穩定瘦素分泌，不帶飢餓或罪惡感入眠" }
     ];
 
     function initDays() {
       const container = document.getElementById("dayListContainer");
+      const mobileSelect = document.getElementById("mobileDaySelector");
       container.innerHTML = "";
+      mobileSelect.innerHTML = "";
       
       for (let i = 0; i < TOTAL_DAYS; i++) {
         const d = new Date(START_DATE);
@@ -233,7 +324,7 @@
         
         const dateStr = formatDate(d);
         const dayBtn = document.createElement("button");
-        dayBtn.className = "day-btn" + (i === 0 ? " active" : "");
+        dayBtn.className = "day-btn" + (i === selectedDayIndex ? " active" : "");
         dayBtn.id = `dayBtn_${i}`;
         dayBtn.onclick = () => selectDay(i);
 
@@ -252,6 +343,13 @@
           </span>
         `;
         container.appendChild(dayBtn);
+
+        // 手機版下拉選單
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.innerText = `Day ${i+1} (${dateStr})`;
+        if (i === selectedDayIndex) opt.selected = true;
+        mobileSelect.appendChild(opt);
       }
       updateGlobalStats();
     }
@@ -270,18 +368,29 @@
       return `${yyyy}/${mm}/${dd}`;
     }
 
+    function prevDay() {
+      if (selectedDayIndex > 0) selectDay(selectedDayIndex - 1);
+    }
+
+    function nextDay() {
+      if (selectedDayIndex < TOTAL_DAYS - 1) selectDay(selectedDayIndex + 1);
+    }
+
     function selectDay(index) {
       selectedDayIndex = index;
+      
       document.querySelectorAll(".day-btn").forEach((btn, i) => {
         btn.classList.toggle("active", i === index);
       });
+      const mobileSelect = document.getElementById("mobileDaySelector");
+      if (mobileSelect) mobileSelect.value = index;
 
       const d = new Date(START_DATE);
       d.setDate(d.getDate() + index);
       const remainingDays = TOTAL_DAYS - index;
 
       document.getElementById("currentDayTitle").innerText = `第 ${index + 1} 天 ｜ ${formatDate(d)}`;
-      document.getElementById("currentDaySubtitle").innerText = `距離 2027.01.10 還有 ${remainingDays} 天 ｜ 試算表對應日期：${formatDateStandard(d)}`;
+      document.getElementById("currentDaySubtitle").innerText = `距離 2027.01.10 還有 ${remainingDays} 天 ｜ 試算表對應：${formatDateStandard(d)}`;
 
       renderDayData(index);
     }
@@ -299,7 +408,6 @@
 
       document.getElementById("inputWeight").onchange = (e) => {
         saveDayMeta(index, 'weight', e.target.value);
-        // 若輸入體重數值且未標記量體重，自動設為 ok
         const d = loadDayData(index);
         if (e.target.value && (!d.statusMap || d.statusMap['m_weigh'] !== 'ok')) {
           setTaskStatus(index, 'm_weigh', 'ok');
@@ -329,16 +437,18 @@
         const row = document.createElement("div");
         row.className = "task-row";
         row.innerHTML = `
-          <div class="status-group">
-            <button type="button" class="status-btn btn-ok ${currentStatus === 'ok' ? 'active' : ''}" title="確定做到" onclick="setTaskStatus(${index}, '${task.id}', 'ok')">✔</button>
-            <button type="button" class="status-btn btn-fail ${currentStatus === 'fail' ? 'active' : ''}" title="確定沒做到" onclick="setTaskStatus(${index}, '${task.id}', 'fail')">✖</button>
-          </div>
-          <div class="task-info">
-            <div class="task-title">${task.title}</div>
-            <div class="task-desc">${task.desc}</div>
+          <div class="task-top">
+            <div class="status-group">
+              <button type="button" class="status-btn btn-ok ${currentStatus === 'ok' ? 'active' : ''}" onclick="setTaskStatus(${index}, '${task.id}', 'ok')">✔</button>
+              <button type="button" class="status-btn btn-fail ${currentStatus === 'fail' ? 'active' : ''}" onclick="setTaskStatus(${index}, '${task.id}', 'fail')">✖</button>
+            </div>
+            <div class="task-info">
+              <div class="task-title">${task.title}</div>
+              <div class="task-desc">${task.desc}</div>
+            </div>
           </div>
           <div>
-            <input type="text" class="task-note-input" placeholder="填寫此項備註或未做到原因..." value="${escapeHtml(currentNote)}" oninput="setTaskNote(${index}, '${task.id}', this.value)">
+            <input type="text" class="task-note-input" placeholder="填寫此項備註或原因..." value="${escapeHtml(currentNote)}" oninput="setTaskNote(${index}, '${task.id}', this.value)">
           </div>
         `;
         container.appendChild(row);
@@ -384,7 +494,7 @@
       const okCount = Object.values(statusMap).filter(v => v === 'ok').length;
       const failCount = Object.values(statusMap).filter(v => v === 'fail').length;
 
-      document.getElementById("todayDoneCount").innerText = `${okCount} ✔ / ${failCount} ✖`;
+      document.getElementById("todayDoneCount").innerText = `${okCount}✔/${failCount}✖`;
     }
 
     function updateGlobalStats() {
@@ -400,7 +510,7 @@
         }
       }
 
-      document.getElementById("loggedDaysCount").innerText = `${logged} / 82`;
+      document.getElementById("loggedDaysCount").innerText = `${logged}/${TOTAL_DAYS}`;
       document.getElementById("currentWeightVal").innerText = lastWeight;
     }
 
@@ -418,20 +528,20 @@
       return (text || '').replace(/"/g, '&quot;');
     }
 
-    // 試算表連動
+    // Google 試算表同步
     async function syncFromGoogleSheets() {
       const statusEl = document.getElementById("syncStatusText");
-      statusEl.innerText = "連線中... 正在抓取「健康26」工作表資料";
+      statusEl.innerText = "連線同步中...";
       const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${GID}`;
 
       try {
         const response = await fetch(csvUrl);
-        if (!response.ok) throw new Error("試算表權限受限或網路異常");
+        if (!response.ok) throw new Error("權限受限");
         const csvText = await response.text();
         parseAndApplySheetCsv(csvText);
-        statusEl.innerText = `✅ 同步成功！已自動更新飲食數據 (${new Date().toLocaleTimeString()})`;
+        statusEl.innerText = `✅ 已同步 (${new Date().toLocaleTimeString().slice(0,5)})`;
       } catch (err) {
-        statusEl.innerText = "⚠️ 私人試算表無法直接跨域讀取，請使用「貼上試算表文字同步」！";
+        statusEl.innerText = "⚠️ 私人表格請用「貼上同步」";
       }
     }
 
@@ -494,11 +604,11 @@
 
       renderDayData(selectedDayIndex);
       initDays();
-      alert(`已成功比對並更新 ${matchedCount} 天的試算表紀錄！`);
+      alert(`已成功更新 ${matchedCount} 天試算表紀錄！`);
     }
 
     function pasteSheetRowData() {
-      const raw = prompt("請在 Google 試算表「健康26」選取當天的整行或相關格子後【複製 (Ctrl+C)】，並【貼上 (Ctrl+V)】於此處：");
+      const raw = prompt("在 Google 試算表複製整列後貼上：");
       if (!raw) return;
 
       const cells = raw.split(/\t|,/);
@@ -529,7 +639,7 @@
       saveDayData(selectedDayIndex, data);
       renderDayData(selectedDayIndex);
       updateDayProgressUI(selectedDayIndex);
-      alert("✅ 成功貼入試算表數據！");
+      alert("✅ 成功貼入！");
     }
 
     function parseCsvLine(text) {
@@ -552,7 +662,7 @@
     }
 
     function clearCurrentDay() {
-      if (confirm("確定要重設當天的所有填寫與連動內容嗎？")) {
+      if (confirm("確定要重設當天的所有內容嗎？")) {
         localStorage.removeItem(`diet_day_${selectedDayIndex}`);
         renderDayData(selectedDayIndex);
         updateDayProgressUI(selectedDayIndex);
@@ -561,7 +671,6 @@
       }
     }
 
-    // AI 診斷報告生成
     function generateAiSummary(mode) {
       const outputModal = document.getElementById("aiOutputModal");
       const textarea = document.getElementById("aiSummaryText");
@@ -683,6 +792,7 @@ ${pendingList.map(item => "  " + item).join("\n") || "  (無)"}
       }
 
       textarea.select();
+      textarea.scrollIntoView({ behavior: 'smooth' });
     }
 
     initDays();
