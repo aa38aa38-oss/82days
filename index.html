@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>82天生活化減重實戰檢核系統 (底部快捷上傳版)</title>
+  <title>82天生活化減重實戰檢核系統 (自動聚焦當日版)</title>
   <style>
     :root {
       --primary: #1e3a8a;
@@ -163,7 +163,7 @@
     }
     .task-note-input:focus { outline: none; border-color: var(--primary-light); }
 
-    /* 底部打勾完成專屬快捷列 */
+    /* 底部打勾快捷列 */
     .checklist-bottom-sync {
       display: flex;
       gap: 10px;
@@ -203,7 +203,7 @@
 
   <header>
     <h1>82天生活化減重實戰檢核系統</h1>
-    <p>2026.10.20 - 2027.01.10 ｜ 100.8 kg ➔ 95.0 kg 以下 ｜ 雲端雙向同步</p>
+    <p>2026.10.20 - 2027.01.10 ｜ 100.8 kg ➔ 95.0 kg 以下 ｜ 自動聚焦當日版</p>
     <div class="stats-bar">
       <div class="stat-box"><div class="val" id="daysLeft">82</div><div class="lbl">剩餘天數</div></div>
       <div class="stat-box"><div class="val" id="todayDoneCount">0✔/0✖</div><div class="lbl">今日狀態</div></div>
@@ -270,7 +270,7 @@
       <!-- 16項檢核清單 -->
       <div id="tasksContainer"></div>
 
-      <!-- ⭐️ 新增：打勾完成後的專屬底部快捷同步按鈕列 ⭐️ -->
+      <!-- 底部快捷同步按鈕列 -->
       <div class="checklist-bottom-sync">
         <button class="btn btn-warning" onclick="forcePushCurrentDay()">📱 立即上傳這一天</button>
         <button class="btn btn-success" onclick="syncAllFromCloud()">🔄 從雲端重新整理</button>
@@ -305,7 +305,7 @@
     const GAS_SYNC_URL = "https://script.google.com/macros/s/AKfycbzUvzvhNcnMTaM-i3DVnsTzRkTDLluinBR5TsKJSALqCZ032n32u5lF_VLoXzx88bgxhw/exec";
     const SHEET_ID = "1s31loEC6sXWlwuZsGITdkDK2H9EhJHCfhwhrPobZjmM";
     const GID = "1406862296"; 
-    const START_DATE = new Date(2026, 9, 20); 
+    const START_DATE = new Date(2026, 9, 20); // 2026-10-20
     const TOTAL_DAYS = 82;
     let selectedDayIndex = 0;
     let autoSaveTimer = null;
@@ -331,6 +331,20 @@
       { id: "n_stretch", section: "夜間修復與睡眠", title: "睡前 10 分鐘脊椎與髖部骨盆伸展", desc: "今日疲勞今日消，釋放腰椎壓力，舒緩自律神經" },
       { id: "n_sleep", section: "夜間修復與睡眠", title: "晚間若餓飲熱牛蒡茶 / 確保優質睡眠", desc: "穩定瘦素分泌，不帶飢餓或罪惡感入眠" }
     ];
+
+    // 自動計算今天是 82 天計畫中的第幾天 (0-indexed)
+    function getTodayDayIndex() {
+      const now = new Date();
+      // 只比對年月日，消除時分秒干擾
+      const todayZero = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startZero = new Date(START_DATE.getFullYear(), START_DATE.getMonth(), START_DATE.getDate());
+      const diffMs = todayZero - startZero;
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      
+      if (diffDays < 0) return 0;
+      if (diffDays >= TOTAL_DAYS) return TOTAL_DAYS - 1;
+      return diffDays;
+    }
 
     function initDays() {
       const container = document.getElementById("dayListContainer");
@@ -400,10 +414,21 @@
       d.setDate(d.getDate() + index);
       const remainingDays = TOTAL_DAYS - index;
 
-      document.getElementById("currentDayTitle").innerText = `第 ${index + 1} 天 ｜ ${formatDate(d)}`;
+      // 檢查是否為今天
+      const todayIdx = getTodayDayIndex();
+      const isToday = (index === todayIdx);
+      const todayTag = isToday ? ` <span style="background:#2563eb;color:white;font-size:0.75rem;padding:2px 6px;border-radius:4px;vertical-align:middle;">今天</span>` : "";
+
+      document.getElementById("currentDayTitle").innerHTML = `第 ${index + 1} 天 ｜ ${formatDate(d)}${todayTag}`;
       document.getElementById("currentDaySubtitle").innerText = `距離 2027.01.10 還有 ${remainingDays} 天 ｜ 試算表對應：${formatDateStandard(d)}`;
 
       renderDayData(index);
+
+      // 自動讓側邊欄選中的按鈕可見
+      const activeBtn = document.getElementById(`dayBtn_${index}`);
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
     }
 
     function renderDayData(index) {
@@ -864,8 +889,10 @@ ${pendingList.map(item => "  " + item).join("\n") || "  (無)"}
       textarea.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // 啟動初始化：自動計算今天天數並定位
+    const todayIndex = getTodayDayIndex();
     initDays();
-    selectDay(0);
+    selectDay(todayIndex);
     syncAllFromCloud();
   </script>
 </body>
